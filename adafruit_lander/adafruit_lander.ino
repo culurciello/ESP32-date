@@ -31,13 +31,13 @@ void printScreen()
     return;
   }
   Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-  // %A	returns day of week
-  // %B	returns month of year
-  // %d	returns day of month
-  // %Y	returns year
-  // %H	returns hour
-  // %M	returns minutes
-  // %S	returns seconds
+  // %A returns day of week
+  // %B returns month of year
+  // %d returns day of month
+  // %Y returns year
+  // %H returns hour
+  // %M returns minutes
+  // %S returns seconds
 
   // read sensors:
   sensors_event_t humidity, temp;
@@ -107,15 +107,40 @@ void setup() {
 
 }
 
+uint8_t * myWheel(byte WheelPos) {
+  static uint8_t colors[3];
+  WheelPos = 255 - WheelPos;
+  if (WheelPos < 85) {
+    colors[0]=255 - WheelPos * 3;
+    colors[1]=0;
+    colors[2]=WheelPos * 3;
+    return colors;//{255 - WheelPos * 3, 0, WheelPos * 3};
+  }
+  if (WheelPos < 170) {
+    WheelPos -= 85;
+    colors[0]=0;
+    colors[1]=WheelPos * 3;
+    colors[2]=255 - WheelPos * 3;
+    return colors;//{0, WheelPos * 3, 255 - WheelPos * 3};
+  }
+  WheelPos -= 170;
+  colors[0]=WheelPos * 3;
+  colors[1]=255 - WheelPos * 3;
+  colors[2]=0;
+  return colors;//{WheelPos * 3, 255 - WheelPos * 3, 0};
+}
+
+boolean ledOn = LOW;
+uint8_t j = 0; // neopixel color wheel
+
 void loop() {
-  for (int inp=0; inp<60; inp++) {
-    np.setPixelColor(0, 255-4.25*inp, inp, 4.25*inp);
-    digitalWrite(led, HIGH);
-    np.show(); 
-    delay(500);
-    digitalWrite(led, LOW);
-    np.clear();
-    delay(500);
-    printScreen(); // once per second
+  for (int inp = 0; inp < 60; inp++) {
+    uint8_t * colors = myWheel(j++);
+    np.setPixelColor(0, colors[0], colors[1], colors[2]);
+    np.show();
+    ledOn = !ledOn;
+    digitalWrite(led, ledOn);
+    delay(1000);
+    printScreen();  // once per second
   }
 }
